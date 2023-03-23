@@ -41,19 +41,19 @@ fn main() -> Result<(), Error> {
         Region::WLD,
         Region::RUS
     ];
-    const DEBUG: bool = false;
+    const DEBUG: bool = true;
 
-    let json_str: String = fs::read_to_string("3ds_game_list.json")?;
+    let n3ds_xml_file = File::open("3dsreleases.xml").unwrap();
+    let n3ds_games = read_3ds_metadata_xml(n3ds_xml_file);
     let input_path: &Path = Path::new("./input");
     let output_path: &Path = Path::new("./output");
-    let game_list: Vec<N3DSGameMetadata> = serde_json::from_str(&json_str).unwrap();
     let input_dir_contents = fs::read_dir(input_path).unwrap();
     let mut input_games: Vec<N3DSGame> = Vec::new();
 
     for games in input_dir_contents {
         let game_name: String = games.unwrap().file_name().into_string().unwrap();
         let file_type: String = game_name[game_name.len() - 3..].to_string();
-        let mut game_file = File::open(input_path.join(&game_name))?;
+        let game_file = File::open(input_path.join(&game_name))?;
 
 
         if file_type == "3ds" || file_type == "cia" {
@@ -64,8 +64,8 @@ fn main() -> Result<(), Error> {
     for game in input_games {
         let mut matching_games: Vec<&N3DSGameMetadata> = Vec::new();
 
-        for game_details in &game_list {
-            if game_details.titleid == game.header_info.title_id {
+        for game_details in &n3ds_games {
+            if game_details.title_id == game.header_info.title_id {
                 matching_games.push(game_details);
             }
         }
@@ -81,8 +81,8 @@ fn main() -> Result<(), Error> {
             let mut found_games: Vec<&String> = Vec::new();
             for matched_game in matching_games {
                 for region in &REGION_PRIORITY {
-                    if &matched_game.region == region && !found_games.contains(&&matched_game.titleid) {
-                        found_games.push(&matched_game.titleid);
+                    if &matched_game.region == region && !found_games.contains(&&matched_game.title_id) {
+                        found_games.push(&matched_game.title_id);
                         if !DEBUG {
                             copy_file(&game.orig_name, clean_file_name(&matched_game.name), input_path, output_path, &game.header_info.file_type)?;
                         } else {

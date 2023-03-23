@@ -2,7 +2,7 @@ use serde_derive::{Deserialize, Serialize};
 use std::{str, format};
 use strum_macros::EnumString;
 
-#[derive(PartialOrd, Ord, PartialEq, Eq, Deserialize, Serialize, Debug, Copy, Clone)]
+#[derive(PartialOrd, Ord, PartialEq, Eq, Deserialize, Serialize, Debug, Copy, Clone, EnumString)]
 pub enum Region {
     EUR,
     USA,
